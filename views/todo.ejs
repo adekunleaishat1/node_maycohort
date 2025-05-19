@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form action="/user/todo" method="post">
+        <input type="text" placeholder="Enter title here" name="title">
+        <input type="text" placeholder="Enter description here" name="description">
+        <button type="submit">Add</button>
+    </form>
+    <% todos.forEach((element,index) => { %>
+        <p>
+            <%= element.title %>
+        </p>
+        <p>
+            <%= element.description %>
+        </p>
+
+        <form action="/todo/delete" method="post">
+            <input name="index" type="text" value="<%= index %>" hidden>
+            <button>Delete</button>
+        </form>
+    <% }) %>
+</body>
+</html>
