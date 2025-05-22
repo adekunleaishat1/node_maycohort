@@ -9,13 +9,15 @@ app.use(express.urlencoded())
 
 let userarray = []
 let todos = []
+let errormessage = ""
 // CRUD CREATE READ UPDATE AND DELETE
 
 const userschema = mongoose.Schema({
-     username:{type:String},
-     email:{type:String},
-     password:{type:String}
+     username:{type:String,required:true,trim:true},
+     email:{type:String,required:true,trim:true,unique:true},
+     password:{type:String,required:true,trim:true}
 })
+
 
 const usermodel = mongoose.model("user_collection",  userschema )
 
@@ -35,7 +37,7 @@ app.get("/user",(request, response)=>{
  })
 })
 app.get("/signup",(request, response)=>{
-   response.render("signup")
+   response.render("signup",{errormessage})
 })
 app.get("/login",(req, res)=>{
     res.render("login")
@@ -72,26 +74,42 @@ app.post("/user/signup",async(request, response)=>{
    console.log(request.body);
    const user =  await usermodel.create(request.body)
     console.log(user);
-   // response.redirect("/login")
+   response.redirect("/login")
   } catch (error) {
-   console.log(error);
+   if (error.message.includes("E11000 duplicate key error")) {
+      errormessage = "email already exist"
+     return response.redirect("/signup") 
+   }
+   if (error.message.includes("user_collection validation failed")) {
+       errormessage = "All fields are mandatory"
+     return response.redirect("/signup")
+   }
+   console.log(error.message);
    
+   response.redirect("/signup")
   }
 })
 
-app.post("/user/login",(request, response)=>{
- console.log(request.body);
- const existuser = userarray.find((user)=> user.email == request.body.email )
- console.log(existuser);
- if (existuser && existuser.password == request.body.password) {
-   console.log("login successful");
-   response.redirect("/")
- }else{
-    console.log("invalid user");
-    response.redirect("/login")
-    
- }
+
+app.post("/user/login",async(request, response)=>{
+  try {
+   console.log(request.body);
+   const {email, password} = request.body
+  const existuser =  await usermodel.findOne({email})
+  console.log(existuser);
+  if (existuser && existuser.password == password) {
+    console.log("login succesful");
+    response.redirect("/todo")
+  }else{
+   console.log("user not found");
+   response.redirect("/login")
+  }
+  } catch (error) {
+   console.log(error);
+   response.redirect("/login")
+  }
 })
+
 
 app.post("/user/todo",(req, res)=>{
    console.log(req.body);
