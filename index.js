@@ -8,7 +8,7 @@ app.set("view engine", "ejs")
 app.use(express.urlencoded())
 
 let userarray = []
-let todos = []
+// let todos = []
 let errormessage = ""
 // CRUD CREATE READ UPDATE AND DELETE
 
@@ -17,6 +17,11 @@ const userschema = mongoose.Schema({
      email:{type:String,required:true,trim:true,unique:true},
      password:{type:String,required:true,trim:true}
 })
+const todoschema = mongoose.Schema({
+   title:{type:String, required:true, trim:true},
+   description:{type:String, required:true, trim:true}
+})
+const todomodel = mongoose.model("todos", todoschema)
 
 
 const usermodel = mongoose.model("user_collection",  userschema )
@@ -42,26 +47,58 @@ app.get("/signup",(request, response)=>{
 app.get("/login",(req, res)=>{
     res.render("login")
 })
-app.get("/todo", (req, res)=>{
-   res.render("todo", {todos})
+app.get("/todo", async(req, res)=>{
+     try {
+      const todos =await todomodel.find()
+      console.log(todos);
+      
+      res.render("todo", {todos})
+      
+     } catch (error) {
+      console.log(error);
+      
+     }
+   
 })
-app.get("/todo/edit/:index", (req, res)=>{
-   console.log(req.params);
-   const indexToEdit = req.params.index
-   const oneTodo = todos[indexToEdit]
-   console.log(todos[indexToEdit]); 
-   res.render("edit", {oneTodo, indexToEdit})
+app.get("/todo/edit/:id", async(req, res)=>{
+  try {
+     // console.log(req.params);
+   const _id = req.params.id
+   console.log(_id);
+  const oneTodo =  await todomodel.findOne({_id})
+  console.log(oneTodo);
+
+ res.render("edit", {oneTodo, _id})
+  } catch (error) {
+    console.log(error);
+    
+  }
    
 })
 
-app.post("/update/todo/:index",(req, res)=>{
-      const index = req.params.index
+app.post("/update/todo/:id", async(req, res)=>{
+     try {
+      const {id} = req.params
       const {title, description} = req.body
       console.log(req.body);
-      let one = "hdhyh"
-      one = "jje"
-      todos[index] = {title, description}
-      res.redirect("/todo")
+    console.log(id);
+   //   const newtodo = await todomodel.findByIdAndUpdate(
+   //       id,
+   //       {title, description}
+   //    )
+
+      const newtodo = await todomodel.findOneAndUpdate(
+         {_id:id},
+         {title, description}
+      )
+      console.log(newtodo);
+      if (newtodo) {
+            res.redirect("/todo")
+      }
+     } catch (error) {
+      console.log(error);
+      
+     }
 })
 app.get("/edit", (req,res)=>{
    console.log(req.body);
@@ -111,19 +148,34 @@ app.post("/user/login",async(request, response)=>{
 })
 
 
-app.post("/user/todo",(req, res)=>{
-   console.log(req.body);
-   todos.push(req.body)
-   res.redirect("/todo")
+app.post("/user/todo", async (req, res)=>{
+   try {
+      
+      const todos = todomodel.create(req.body)
+      // const {title, description} = req.body
+      res.redirect("/todo")
+
+   } catch (error) {
+      console.log(error);
+      
+   }
+   // console.log(req.body);
+   // todos.push(req.body)
+   // res.redirect("/todo")
 })
 
-app.post("/todo/delete",(req, res)=>{
-   // console.log(req.body);
-   const {index} = req.body
-   console.log(index);
-   todos.splice(index, 1)
+app.post("/todo/delete",async(req, res)=>{
+ try {
+     console.log(req.body);
+   const id = req.body.index
+  const deletedtodo =  await todomodel.findByIdAndDelete(id)
+  if (deletedtodo) {
    res.redirect("/todo")
-   
+  }
+ 
+ } catch (error) {
+   console.log(error);
+ } 
 })
 // app.post("/edit", (req, res))
 
