@@ -2,21 +2,23 @@ const express = require("express")
 const app = express()
 require("ejs")
 const mongoose = require("mongoose")
+require("dotenv").config()
+const connect = require("./Dbconfig/Db.connect")
+const usermodel = require("./models/user.model")
+const userrouter = require("./routes/user.route")
 
 
 app.set("view engine", "ejs")
 app.use(express.urlencoded())
+app.use("/",userrouter)
 
 let userarray = []
 // let todos = []
 let errormessage = ""
 // CRUD CREATE READ UPDATE AND DELETE
 
-const userschema = mongoose.Schema({
-     username:{type:String,required:true,trim:true},
-     email:{type:String,required:true,trim:true,unique:true},
-     password:{type:String,required:true,trim:true}
-})
+
+
 const todoschema = mongoose.Schema({
    title:{type:String, required:true, trim:true},
    description:{type:String, required:true, trim:true}
@@ -24,13 +26,8 @@ const todoschema = mongoose.Schema({
 const todomodel = mongoose.model("todos", todoschema)
 
 
-const usermodel = mongoose.model("user_collection",  userschema )
 
 
-app.get("/",(request, response)=>{
-    //  response.send("Welcome to your Node class")
-    response.render("index",{name:"Shola",gender:"female"})
-})
 
 app.get("/user",(request, response)=>{
  response.json({
@@ -41,9 +38,7 @@ app.get("/user",(request, response)=>{
     ]
  })
 })
-app.get("/signup",(request, response)=>{
-   response.render("signup",{errormessage})
-})
+
 app.get("/login",(req, res)=>{
     res.render("login")
 })
@@ -186,20 +181,5 @@ app.listen(port,()=>{
    
 })
 
-const uri = "mongodb+srv://aishatadekunle877:aishat@cluster0.t92x8pf.mongodb.net/Maycohort?retryWrites=true&w=majority&appName=Cluster0"
-
-
-
-const connect = async () =>{
-   try {
-    const connection = await mongoose.connect(uri)
-    if (connection) {
-      console.log("database connected successfully");
-      
-    }
-   } catch (error) {
-      console.log(error);  
-   }
-}
-
 connect()
+
