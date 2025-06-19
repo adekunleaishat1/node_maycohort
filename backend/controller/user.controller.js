@@ -2,6 +2,7 @@ const usermodel = require("../model/user.model")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const SaltRound = 10
+const sendConfirmationEmail = require("../utils/mailer")
 
 
 const userSignup =async (req, res) =>{
@@ -12,8 +13,12 @@ const userSignup =async (req, res) =>{
         return res.status(400).send({message:"All fields are mandatory", status:false})
     }
       const hashedPassword = await bcrypt.hash(password, SaltRound)
-      console.log(hashedPassword);
       
+      const mail = await sendConfirmationEmail(username, email)
+      if (!mail) {
+        return res.status(402).send({message:"Email Provided is not Valid", status:false})
+        
+      }
      const createduser =  await usermodel.create({
       username,
       email,
